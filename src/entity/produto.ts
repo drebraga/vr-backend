@@ -14,7 +14,4 @@ export class produto {
 
   @Column('bytea', { nullable: true })
   imagem: string;
-
-  @OneToMany(() => produtoloja, (produtoloja) => produtoloja.id)
-  produtoloja: produtoloja[];
 }

@@ -8,7 +8,4 @@ export class loja {
 
   @Column('varchar', { length: 60 })
   descricao: string;
-
-  @OneToMany(() => produtoloja, (produtoloja) => produtoloja.id)
-  produtoloja: produtoloja[];
 }
