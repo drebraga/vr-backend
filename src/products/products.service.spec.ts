@@ -76,6 +76,22 @@ describe('ProductsService', () => {
 
       expect(result).toBe(createProductDto);
     });
+
+    it('should throw an error when creating a product', async () => {
+      productRepositoryMock.create.mockImplementation(() => {
+        throw new Error('Simulated error during product creation');
+      });
+
+      try {
+        await service.create(createProductDto);
+
+        fail('Expected an error to be thrown');
+      } catch (error) {
+        expect(error.message).toBe(
+          'Error creating product: Simulated error during product creation',
+        );
+      }
+    });
   });
 
   describe('find', () => {
@@ -115,11 +131,14 @@ describe('ProductsService', () => {
 
   describe('update', () => {
     it('should update a product', async () => {
-      productRepositoryMock.update.mockReturnValue(updateProductDto);
+      const id = 1;
+      productRepositoryMock.find.mockReturnValue({ id, ...updateProductDto });
+      productRepositoryMock.update.mockReturnValue({});
 
-      const result = await service.update(1, updateProductDto);
+      await service.update(id, updateProductDto);
+      const result = await service.findBy({ id });
 
-      expect(result).toBe(updateProductDto);
+      expect(result).toStrictEqual({ id, ...updateProductDto });
     });
   });
 
@@ -130,6 +149,143 @@ describe('ProductsService', () => {
       const result = await service.remove(1);
 
       expect(result).toBe(products[0]);
+    });
+  });
+
+  describe('errors', () => {
+    it('should throw an error when getting all products', async () => {
+      productRepositoryMock.find.mockImplementation(() => {
+        throw new Error('Simulated error during finding products');
+      });
+
+      try {
+        await service.findAll();
+
+        fail('Expected an error to be thrown');
+      } catch (error) {
+        expect(error.message).toBe(
+          'Error getting products: Simulated error during finding products',
+        );
+      }
+    });
+
+    it('should throw an error when id is not a number', async () => {
+      const params = { id: NaN };
+
+      try {
+        await service.findBy(params);
+
+        fail('Expected an error to be thrown');
+      } catch (error) {
+        expect(error.message).toBe('Id is not a number');
+      }
+    });
+
+    it('should throw an error when descricao is not a string', async () => {
+      const params = {
+        descricao:
+          'simulacao_de_descricao_com_mais_de_sessenta_caracteres_123456789',
+      };
+
+      try {
+        await service.findBy(params);
+
+        fail('Expected an error to be thrown');
+      } catch (error) {
+        expect(error.message).toBe('Descrição is larger then expected');
+      }
+    });
+
+    it('should throw an error when custo is not a number', async () => {
+      const params = { custo: NaN };
+
+      try {
+        await service.findBy(params);
+
+        fail('Expected an error to be thrown');
+      } catch (error) {
+        expect(error.message).toBe('Custo is not a number');
+      }
+    });
+
+    it('should throw an error when getting filtered products', async () => {
+      productRepositoryMock.find.mockImplementation(() => {
+        throw new Error('Simulated error during finding products');
+      });
+
+      try {
+        await service.findBy({ id: 1 });
+
+        fail('Expected an error to be thrown');
+      } catch (error) {
+        expect(error.message).toBe(
+          'Error getting products: Simulated error during finding products',
+        );
+      }
+    });
+
+    it('should throw an error when updating a product', async () => {
+      productRepositoryMock.find.mockReturnValue(products);
+      productRepositoryMock.update.mockImplementation(() => {
+        throw new Error('Simulated error during updating a product');
+      });
+
+      try {
+        await service.update(1, updateProductDto);
+
+        fail('Expected an error to be thrown');
+      } catch (error) {
+        expect(error.message).toBe(
+          'Error updating product: Simulated error during updating a product',
+        );
+      }
+    });
+
+    it('should throw an error when the product to update does not exist', async () => {
+      const id = 1;
+      productRepositoryMock.find.mockReturnValue([]);
+
+      try {
+        await service.update(id, updateProductDto);
+
+        fail('Expected an error to be thrown');
+      } catch (error) {
+        expect(error.message).toBe(
+          `Error updating product: Product with ID ${id} not found`,
+        );
+      }
+    });
+
+    it('should throw an error when remove a product', async () => {
+      productRepositoryMock.findOne.mockReturnValue(products[0]);
+      productRepositoryMock.remove.mockImplementation(() => {
+        throw new Error('Simulated error during updating a product');
+      });
+
+      try {
+        await service.remove(1);
+
+        fail('Expected an error to be thrown');
+      } catch (error) {
+        expect(error.message).toBe(
+          'Error removing product: Simulated error during updating a product',
+        );
+      }
+    });
+
+    it('should throw an error when the product to remove does not exist', async () => {
+      const id = 1;
+      productRepositoryMock.findOne.mockReturnValue(undefined);
+
+      try {
+        await service.remove(id);
+
+        fail('Expected an error to be thrown');
+      } catch (error) {
+        expect(error.message).toBe(
+          `Error removing product: Product with ID ${id} not found`,
+        );
+      }
     });
   });
 });

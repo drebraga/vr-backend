@@ -4,6 +4,7 @@ import { ProductsService } from './products.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { produto } from '../entity/produto.entity';
 import { CreateProductDto } from './dto/create-product.dto';
+import { UpdateProductDto } from './dto/update-product.dto';
 
 describe('ProductsController', () => {
   let controller: ProductsController;
@@ -12,6 +13,11 @@ describe('ProductsController', () => {
     descricao: 'teste_produto',
     custo: 10,
     imagem: 'teste_imagem',
+  };
+  const updateProductDto: UpdateProductDto = {
+    descricao: 'teste_update_produto',
+    custo: 5.5,
+    imagem: 'teste_update_imagem',
   };
   const products = [
     {
@@ -52,12 +58,12 @@ describe('ProductsController', () => {
 
   describe('create', () => {
     it('should create a product', async () => {
-      const products = { id: 1, produtoloja: null, ...createProductDto };
+      const product = { id: 1, produtoloja: null, ...createProductDto };
 
-      jest.spyOn(service, 'create').mockResolvedValue(products);
+      jest.spyOn(service, 'create').mockResolvedValue(product);
       const result = await controller.create(createProductDto);
 
-      expect(result).toBe(products);
+      expect(result).toBe(product);
     });
   });
 
@@ -91,9 +97,32 @@ describe('ProductsController', () => {
     it('should return an array of products with same cost', async () => {
       jest.spyOn(service, 'findBy').mockResolvedValue(products);
 
-      const result = await controller.findByCost(10);
+      const result = await controller.findByCost('10');
 
       expect(result).toBe(products);
+    });
+  });
+
+  describe('update', () => {
+    it('should update a product', async () => {
+      const id = '1';
+      const product = { id: +id, ...updateProductDto, produtoloja: null };
+
+      jest.spyOn(service, 'update').mockResolvedValue(product);
+      const result = await controller.update(id, updateProductDto);
+
+      expect(result).toBe(product);
+    });
+  });
+
+  describe('remove', () => {
+    it('should remove a product', async () => {
+      const id = '1';
+
+      jest.spyOn(service, 'remove').mockResolvedValue(products[0]);
+      const result = await controller.remove(id);
+
+      expect(result).toBe(products[0]);
     });
   });
 });

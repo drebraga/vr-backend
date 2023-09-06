@@ -36,14 +36,13 @@ export class ProductsController {
   }
 
   @Get('custo/:custo')
-  findByCost(@Param('custo') custo: number) {
-    return this.productsService.findBy({ custo });
+  findByCost(@Param('custo') custo: string) {
+    return this.productsService.findBy({ custo: +custo });
   }
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateProductDto: UpdateProductDto) {
-    this.productsService.update(+id, updateProductDto);
-    return;
+    return this.productsService.update(+id, updateProductDto);
   }
 
   @Delete(':id')
