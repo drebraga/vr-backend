@@ -2,22 +2,15 @@ import { Module } from '@nestjs/common';
 import { ProductsModule } from './products/products.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { StoreProductsModule } from './store-products/store-products.module';
-import { produto } from './entity/produto';
-import { loja } from './entity/loja';
-import { produtoloja } from './entity/produtoloja';
+import { ConfigModule, ConfigService } from 'nestjs-config';
+import * as path from 'path';
 
 @Module({
   imports: [
-    TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: 'localhost',
-      port: 5432,
-      username: 'postgres',
-      password: 'postgres',
-      database: 'vr',
-      entities: [produto, loja, produtoloja],
-      synchronize: true,
-      autoLoadEntities: true,
+    ConfigModule.load(path.resolve(__dirname, 'config', '**/!(*.d).{ts,js}')),
+    TypeOrmModule.forRootAsync({
+      useFactory: (config: ConfigService) => config.get('database'),
+      inject: [ConfigService],
     }),
     ProductsModule,
     StoreProductsModule,

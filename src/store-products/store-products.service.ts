@@ -2,10 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { CreateStoreProductDto } from './dto/create-store-product.dto';
 import { UpdateStoreProductDto } from './dto/update-store-product.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { produtoloja } from '../entity/produtoloja';
+import { produtoloja } from '../entity/produtoloja.entity';
 import { Repository } from 'typeorm';
 import { ProductsService } from '../products/products.service';
-import { loja } from '../entity/loja';
+import { loja } from '../entity/loja.entity';
 
 @Injectable()
 export class StoreProductsService {

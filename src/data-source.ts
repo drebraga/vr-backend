@@ -1,8 +1,8 @@
 import 'reflect-metadata';
 import { DataSource } from 'typeorm';
-import { produto } from './entity/produto';
-import { produtoloja } from './entity/produtoloja';
-import { loja } from './entity/loja';
+import { produto } from './entity/produto.entity';
+import { produtoloja } from './entity/produtoloja.entity';
+import { loja } from './entity/loja.entity';
 
 export const AppDataSource = new DataSource({
   type: 'postgres',
