@@ -19,7 +19,7 @@ export class StoreProductsService {
 
   async create({ produtoId, lojaId, precoVenda }: CreateStoreProductDto) {
     try {
-      const [product] = await this.productsService.findOne({ id: produtoId });
+      const [product] = await this.productsService.findBy({ id: produtoId });
       if (!product) throw new Error(`Product with ID ${produtoId} not found`);
 
       const store = await this.storeRepository.findOne({
@@ -46,7 +46,7 @@ export class StoreProductsService {
 
   async findAll(id: number) {
     try {
-      const [produtos] = await this.productsService.findOne({ id: +id });
+      const [produtos] = await this.productsService.findBy({ id: +id });
       const lojas = await this.storeProductRepository.find({
         where: { produto: { id } },
         order: { loja: { id: 'ASC' } },

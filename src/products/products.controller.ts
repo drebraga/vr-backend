@@ -27,22 +27,23 @@ export class ProductsController {
 
   @Get('id/:id')
   findOneById(@Param('id') id: string) {
-    return this.productsService.findOne({ id: +id });
+    return this.productsService.findBy({ id: +id });
   }
 
   @Get('descricao/:descricao')
-  findOneByDescription(@Param('descricao') descricao: string) {
-    return this.productsService.findOne({ descricao });
+  findByDescription(@Param('descricao') descricao: string) {
+    return this.productsService.findBy({ descricao });
   }
 
   @Get('custo/:custo')
-  findOneByCost(@Param('custo') custo: number) {
-    return this.productsService.findOne({ custo });
+  findByCost(@Param('custo') custo: number) {
+    return this.productsService.findBy({ custo });
   }
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateProductDto: UpdateProductDto) {
-    return this.productsService.update(+id, updateProductDto);
+    this.productsService.update(+id, updateProductDto);
+    return;
   }
 
   @Delete(':id')

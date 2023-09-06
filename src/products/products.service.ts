@@ -21,7 +21,7 @@ export class ProductsService {
     return this.productRepository.find({ order: { id: 'ASC' } });
   }
 
-  findOne(params: { id?: number; descricao?: string; custo?: number }) {
+  findBy(params: { id?: number; descricao?: string; custo?: number }) {
     if (params.descricao) {
       return this.productRepository.find({
         where: { descricao: ILike(`%${params.descricao}%`) },
@@ -31,13 +31,17 @@ export class ProductsService {
   }
 
   async update(id: number, updateProductDto: UpdateProductDto) {
-    const productToUpdate = await this.productRepository.find({
-      where: { id },
-    });
-    if (productToUpdate) {
-      await this.productRepository.update({ id }, { ...updateProductDto });
-    } else {
-      throw new Error(`Product with ID ${id} not found`);
+    try {
+      const productToUpdate = await this.productRepository.find({
+        where: { id },
+      });
+      if (productToUpdate) {
+        return this.productRepository.update({ id }, { ...updateProductDto });
+      } else {
+        throw new Error(`Product with ID ${id} not found`);
+      }
+    } catch (error) {
+      throw new Error(`Error updating product: ${error.message}`);
     }
   }
 
