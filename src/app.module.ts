@@ -3,6 +3,7 @@ import { ProductsModule } from './products/products.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { StoreProductsModule } from './store-products/store-products.module';
 import { ConfigModule, ConfigService } from 'nestjs-config';
+import { StoreModule } from './store/store.module';
 import * as path from 'path';
 
 @Module({
@@ -14,6 +15,7 @@ import * as path from 'path';
     }),
     ProductsModule,
     StoreProductsModule,
+    StoreModule,
   ],
   controllers: [],
   providers: [],
