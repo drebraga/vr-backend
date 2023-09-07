@@ -1,23 +1,83 @@
 import { Injectable } from '@nestjs/common';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
-import { ILike, Repository, Unique } from 'typeorm';
-import { produto } from '../entity/produto.entity';
+import { EntityManager, ILike, Repository } from 'typeorm';
+import { Produto } from '../entity/produto.entity';
 import { InjectRepository } from '@nestjs/typeorm';
+import { loja } from '../entity/loja.entity';
+import { produtoloja } from '../entity/produtoloja.entity';
 
 @Injectable()
 export class ProductsService {
   constructor(
-    @InjectRepository(produto)
-    private productRepository: Repository<produto>,
+    @InjectRepository(Produto)
+    private productRepository: Repository<Produto>,
+    @InjectRepository(loja)
+    private storeRepository: Repository<loja>,
+    @InjectRepository(produtoloja)
+    private storeProductRepository: Repository<produtoloja>,
+    private entityManager: EntityManager,
   ) {}
 
   async create(createProductDto: CreateProductDto) {
+    let insertProduct;
+    const queryRunner = this.entityManager.connection.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
     try {
-      const product = this.productRepository.create(createProductDto);
-      return await this.productRepository.save(product);
+      const store = await this.storeRepository.findOne({
+        where: { id: createProductDto.lojas[0].id },
+      });
+      if (!store) {
+        throw new Error(
+          `Store with ID ${createProductDto.lojas[0].id} not found`,
+        );
+      }
+
+      const product = {
+        descricao: createProductDto.descricao,
+        custo: createProductDto.custo,
+        imagem: createProductDto.imagem,
+      };
+
+      insertProduct = await this.productRepository.save(product);
+
+      for (const store of createProductDto.lojas) {
+        const createPricesResource = {
+          produto: { id: +insertProduct.id },
+          loja: { id: store.id },
+          precoVenda: store.precoVenda,
+        };
+        console.log(createPricesResource);
+        if (
+          isNaN(createPricesResource.produto.id) ||
+          createPricesResource.produto.id === null
+        ) {
+          throw Error('Product Id is NULL');
+        }
+
+        const newProductStore =
+          this.storeProductRepository.create(createPricesResource);
+
+        console.log(newProductStore);
+
+        await this.storeProductRepository.save(newProductStore);
+      }
+      await queryRunner.commitTransaction();
     } catch (error) {
+      await queryRunner.rollbackTransaction();
+      if (error.code === '23505') {
+        throw new Error(`Entrada duplicada para produto e loja`);
+      }
+
+      if (insertProduct) {
+        await this.productRepository.delete(insertProduct.id);
+      }
+
       throw new Error(`Error creating product: ${error.message}`);
+    } finally {
+      queryRunner.release();
     }
   }
 

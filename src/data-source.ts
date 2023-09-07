@@ -1,6 +1,6 @@
 import 'reflect-metadata';
 import { DataSource } from 'typeorm';
-import { produto } from './entity/produto.entity';
+import { Produto } from './entity/produto.entity';
 import { produtoloja } from './entity/produtoloja.entity';
 import { loja } from './entity/loja.entity';
 
@@ -13,7 +13,7 @@ export const AppDataSource = new DataSource({
   database: 'vr',
   synchronize: true,
   logging: false,
-  entities: [produto, produtoloja, loja],
+  entities: [Produto, produtoloja, loja],
   migrations: [],
   subscribers: [],
 });

@@ -2,7 +2,7 @@ import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
 import { produtoloja } from './produtoloja.entity';
 
 @Entity()
-export class produto {
+export class Produto {
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -15,6 +15,6 @@ export class produto {
   @Column('bytea', { nullable: true })
   imagem: string;
 
-  @OneToMany(() => produtoloja, (pl) => pl.produto)
+  @OneToMany(() => produtoloja, (pl) => pl.produto, { cascade: true })
   produtoloja: produtoloja[];
 }

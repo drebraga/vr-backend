@@ -9,6 +9,6 @@ export class loja {
   @Column('varchar', { length: 60 })
   descricao: string;
 
-  @OneToMany(() => produtoloja, (pl) => pl.loja)
+  @OneToMany(() => produtoloja, (pl) => pl.loja, { cascade: true })
   produtoloja: produtoloja[];
 }

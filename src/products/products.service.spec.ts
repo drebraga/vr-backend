@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ProductsService } from './products.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { produto } from '../entity/produto.entity';
+import { Produto } from '../entity/produto.entity';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 
@@ -19,6 +19,7 @@ describe('ProductsService', () => {
     descricao: 'teste_produto',
     custo: 10.5,
     imagem: 'teste_imagem',
+    lojas: [],
   };
   const updateProductDto: UpdateProductDto = {
     descricao: 'teste_update_produto',
@@ -47,7 +48,7 @@ describe('ProductsService', () => {
       providers: [
         ProductsService,
         {
-          provide: getRepositoryToken(produto),
+          provide: getRepositoryToken(Produto),
           useValue: productRepositoryMock,
         },
       ],
