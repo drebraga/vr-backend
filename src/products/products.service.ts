@@ -26,15 +26,6 @@ export class ProductsService {
     await queryRunner.startTransaction();
 
     try {
-      const store = await this.storeRepository.findOne({
-        where: { id: createProductDto.lojas[0].id },
-      });
-      if (!store) {
-        throw new Error(
-          `Store with ID ${createProductDto.lojas[0].id} not found`,
-        );
-      }
-
       const product = {
         descricao: createProductDto.descricao,
         custo: createProductDto.custo,
@@ -44,12 +35,18 @@ export class ProductsService {
       insertProduct = await this.productRepository.save(product);
 
       for (const store of createProductDto.lojas) {
+        const storeExists = await this.storeRepository.findOne({
+          where: { id: store.id },
+        });
+        if (!storeExists) {
+          throw new Error(`Store with ID ${store.id} not found`);
+        }
         const createPricesResource = {
           produto: { id: +insertProduct.id },
           loja: { id: store.id },
           precoVenda: store.precoVenda,
         };
-        console.log(createPricesResource);
+
         if (
           isNaN(createPricesResource.produto.id) ||
           createPricesResource.produto.id === null
@@ -59,8 +56,6 @@ export class ProductsService {
 
         const newProductStore =
           this.storeProductRepository.create(createPricesResource);
-
-        console.log(newProductStore);
 
         await this.storeProductRepository.save(newProductStore);
       }
@@ -113,19 +108,90 @@ export class ProductsService {
   }
 
   async update(id: number, updateProductDto: UpdateProductDto) {
+    let productToUpdate;
+    let storesRecover = [] as produtoloja[];
+    const storesToDelete = [] as produtoloja[];
+    const queryRunner = this.entityManager.connection.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
     try {
-      const productToUpdate = await this.productRepository.find({
+      const storesRecoverResponse = await this.storeProductRepository.find({
+        where: { produto: { id } },
+      });
+      storesRecover = [...storesRecoverResponse];
+      await this.storeProductRepository.remove(storesRecoverResponse);
+      productToUpdate = await this.productRepository.find({
         where: { id },
       });
       if (productToUpdate.length === 0) {
         throw new Error(`Product with ID ${id} not found`);
       }
-      await this.productRepository.update({ id }, { ...updateProductDto });
 
-      const [newProduct] = await this.findBy({ id });
-      return newProduct;
+      const product = {
+        descricao: updateProductDto.descricao,
+        custo: updateProductDto.custo,
+        imagem: updateProductDto.imagem,
+      };
+
+      await this.productRepository.update(id, product);
+
+      for (const store of updateProductDto.lojas) {
+        const storeExists = await this.storeRepository.findOne({
+          where: { id: store.id },
+        });
+        if (!storeExists) {
+          throw new Error(`Store with ID ${store.id} not found`);
+        }
+
+        const createPricesResource = {
+          produto: { id: id },
+          loja: { id: store.id },
+          precoVenda: store.precoVenda,
+        };
+
+        if (
+          isNaN(createPricesResource.produto.id) ||
+          createPricesResource.produto.id === null
+        ) {
+          throw Error('Product Id is NULL');
+        }
+
+        const newProductStore =
+          this.storeProductRepository.create(createPricesResource);
+
+        const storeToRemove =
+          await this.storeProductRepository.save(newProductStore);
+        storesToDelete.push(storeToRemove);
+      }
+      await queryRunner.commitTransaction();
     } catch (error) {
+      await queryRunner.rollbackTransaction();
+      if (error.code === '23505') {
+        throw new Error(`Duplicated entry found`);
+      }
+
+      if (productToUpdate) {
+        await this.productRepository.update(productToUpdate.id, {
+          descricao: productToUpdate.descricao,
+          custo: productToUpdate.custo,
+          imagem: productToUpdate.imagem,
+        });
+      }
+      if (storesToDelete.length > 0) {
+        for (const stores of storesToDelete) {
+          await this.storeProductRepository.remove(stores);
+        }
+      }
+      if (storesRecover.length > 0) {
+        for (const stores of storesRecover) {
+          await this.storeProductRepository.save(stores);
+        }
+      }
+
       throw new Error(`Error updating product: ${error.message}`);
+    } finally {
+      queryRunner.release();
     }
   }
 
