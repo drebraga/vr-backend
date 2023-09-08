@@ -6,6 +6,7 @@ import { produtoloja } from '../entity/produtoloja.entity';
 import { Repository } from 'typeorm';
 import { ProductsService } from '../products/products.service';
 import { loja } from '../entity/loja.entity';
+import { Produto } from '../entity/produto.entity';
 
 @Injectable()
 export class StoreProductsService {
@@ -14,12 +15,15 @@ export class StoreProductsService {
     private storeProductRepository: Repository<produtoloja>,
     @InjectRepository(loja)
     private storeRepository: Repository<loja>,
-    private readonly productsService: ProductsService,
+    @InjectRepository(Produto)
+    private ProductRepository: Repository<Produto>,
   ) {}
 
   async create({ produtoId, lojaId, precoVenda }: CreateStoreProductDto) {
     try {
-      const [product] = await this.productsService.findBy({ id: produtoId });
+      const [product] = await this.ProductRepository.find({
+        where: { id: produtoId },
+      });
       if (!product) throw new Error(`Product with ID ${produtoId} not found`);
 
       const store = await this.storeRepository.findOne({
@@ -46,14 +50,14 @@ export class StoreProductsService {
 
   async findAll(id: number) {
     try {
-      const [produtos] = await this.productsService.findBy({ id: +id });
+      const [produto] = await this.ProductRepository.find({ where: { id } });
       const lojas = await this.storeProductRepository.find({
         where: { produto: { id } },
         order: { loja: { id: 'ASC' } },
         relations: ['loja'],
         select: ['precoVenda'],
       });
-      return { produtos, lojas };
+      return { ...produto, lojas };
     } catch (error) {
       throw new Error(`Error finding product-store: ${error.message}`);
     }

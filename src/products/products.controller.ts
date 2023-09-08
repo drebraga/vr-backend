@@ -40,6 +40,11 @@ export class ProductsController {
     return this.productsService.findBy({ custo: +custo });
   }
 
+  @Get('precovenda/:precovenda')
+  findByPV(@Param('precovenda') precoVenda: string) {
+    return this.productsService.findByPV(+precoVenda);
+  }
+
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateProductDto: UpdateProductDto) {
     return this.productsService.update(+id, updateProductDto);

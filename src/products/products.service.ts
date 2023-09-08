@@ -107,6 +107,33 @@ export class ProductsService {
     }
   }
 
+  async findByPV(precoVenda: number) {
+    if (isNaN(precoVenda) && precoVenda !== undefined) {
+      throw Error('precoVenda is not a number');
+    }
+
+    const response = [] as Produto[];
+
+    try {
+      const products = await this.storeProductRepository.find({
+        where: { precoVenda: precoVenda },
+        order: { produto: { id: 'ASC' } },
+        relations: ['produto'],
+      });
+
+      for (const prod of products) {
+        const [prodResponse] = await this.productRepository.find({
+          where: { id: prod?.produto.id },
+        });
+
+        response.push(prodResponse);
+      }
+      return response;
+    } catch (error) {
+      throw new Error(`Error getting products: ${error.message}`);
+    }
+  }
+
   async update(id: number, updateProductDto: UpdateProductDto) {
     let productToUpdate;
     let storesRecover = [] as produtoloja[];
