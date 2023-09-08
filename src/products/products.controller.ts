@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { UpdateProductDto } from './dto/update-product.dto';
@@ -25,24 +26,24 @@ export class ProductsController {
     return this.productsService.findAll();
   }
 
-  @Get('id/:id')
+  @Get('search')
+  findBy(
+    @Query('id') id: string,
+    @Query('descricao') descricao: string,
+    @Query('custo') custo: string,
+    @Query('precoVenda') precoVenda: string,
+  ) {
+    return this.productsService.search({
+      id: +id,
+      descricao,
+      custo: +custo,
+      precoVenda: +precoVenda,
+    });
+  }
+
+  @Get(':id')
   findOneById(@Param('id') id: string) {
-    return this.productsService.findBy({ id: +id });
-  }
-
-  @Get('descricao/:descricao')
-  findByDescription(@Param('descricao') descricao: string) {
-    return this.productsService.findBy({ descricao });
-  }
-
-  @Get('custo/:custo')
-  findByCost(@Param('custo') custo: string) {
-    return this.productsService.findBy({ custo: +custo });
-  }
-
-  @Get('precovenda/:precovenda')
-  findByPV(@Param('precovenda') precoVenda: string) {
-    return this.productsService.findByPV(+precoVenda);
+    return this.productsService.findById(+id);
   }
 
   @Patch(':id')

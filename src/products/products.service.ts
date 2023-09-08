@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
-import { EntityManager, ILike, Repository } from 'typeorm';
+import { EntityManager, FindOperator, ILike, Repository } from 'typeorm';
 import { Produto } from '../entity/produto.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { loja } from '../entity/loja.entity';
@@ -84,7 +84,43 @@ export class ProductsService {
     }
   }
 
-  findBy(params: { id?: number; descricao?: string; custo?: number }) {
+  async search(params: {
+    id?: number;
+    descricao?: string;
+    custo?: number;
+    precoVenda?: number;
+  }) {
+    if (
+      !params?.id &&
+      !params?.descricao &&
+      !params?.custo &&
+      !params?.precoVenda
+    )
+      return [];
+
+    try {
+      const searchParams = { produtoloja: {} } as {
+        id?: number;
+        descricao?: FindOperator<string>;
+        custo?: number;
+        produtoloja: { precoVenda?: number };
+      };
+      if (!isNaN(params?.id)) searchParams.id = params.id;
+      if (params?.descricao)
+        searchParams.descricao = ILike(`%${params.descricao}%`);
+      if (!isNaN(params?.custo)) searchParams.custo = params.custo;
+      if (!isNaN(params?.precoVenda)) {
+        searchParams.produtoloja.precoVenda = params.precoVenda;
+      }
+
+      const products = await this.productRepository.find({
+        where: { ...searchParams },
+      });
+      return products;
+    } catch (error) {
+      throw new Error(`Error getting products: ${error.message}`);
+    }
+
     if (isNaN(params.id) && params.id !== undefined) {
       throw Error('Id is not a number');
     }
@@ -107,30 +143,16 @@ export class ProductsService {
     }
   }
 
-  async findByPV(precoVenda: number) {
-    if (isNaN(precoVenda) && precoVenda !== undefined) {
-      throw Error('precoVenda is not a number');
+  async findById(id: number) {
+    if (isNaN(id) && id !== undefined) {
+      throw Error('Id is not a number');
     }
 
-    const response = [] as Produto[];
-
     try {
-      const products = await this.storeProductRepository.find({
-        where: { precoVenda: precoVenda },
-        order: { produto: { id: 'ASC' } },
-        relations: ['produto'],
-      });
-
-      for (const prod of products) {
-        const [prodResponse] = await this.productRepository.find({
-          where: { id: prod?.produto.id },
-        });
-
-        response.push(prodResponse);
-      }
-      return response;
+      const [product] = await this.productRepository.find({ where: { id } });
+      return product;
     } catch (error) {
-      throw new Error(`Error getting products: ${error.message}`);
+      throw new Error(`Error getting product: ${error.message}`);
     }
   }
 
