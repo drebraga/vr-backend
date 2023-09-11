@@ -3,8 +3,7 @@ import { StoreProductsService } from './store-products.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { produtoloja } from '../entity/produtoloja.entity';
 import { loja } from '../entity/loja.entity';
-import { produto } from '../entity/produto.entity';
-import { ProductsService } from '../products/products.service';
+import { Produto } from '../entity/produto.entity';
 
 describe('StoreProductsService', () => {
   let service: StoreProductsService;
@@ -13,10 +12,9 @@ describe('StoreProductsService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         StoreProductsService,
-        ProductsService,
         { provide: getRepositoryToken(produtoloja), useFactory: jest.fn },
         { provide: getRepositoryToken(loja), useFactory: jest.fn },
-        { provide: getRepositoryToken(produto), useFactory: jest.fn },
+        { provide: getRepositoryToken(Produto), useFactory: jest.fn },
       ],
     }).compile();
 

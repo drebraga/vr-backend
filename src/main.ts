@@ -9,9 +9,9 @@ async function bootstrap() {
   dotenvFlow.config();
   const app = await NestFactory.create(AppModule);
   const corsOptions: CorsOptions = {
-    origin: 'http://localhost:4200', // Substitua pelo endereço da origem do seu aplicativo Angular
+    origin: 'http://localhost:4200',
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-    credentials: true, // Permite cookies e cabeçalhos de autenticação
+    credentials: true,
   };
   app.enableCors(corsOptions);
   app.useGlobalPipes(new ValidationPipe());

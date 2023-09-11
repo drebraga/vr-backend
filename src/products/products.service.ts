@@ -59,15 +59,14 @@ export class ProductsService {
 
         await this.storeProductRepository.save(newProductStore);
       }
+
       await queryRunner.commitTransaction();
+      return insertProduct.id;
     } catch (error) {
       await queryRunner.rollbackTransaction();
-      if (error.code === '23505') {
-        throw new Error(`Entrada duplicada para produto e loja`);
-      }
 
       if (insertProduct) {
-        await this.productRepository.delete(insertProduct.id);
+        await this.productRepository.remove(insertProduct.id);
       }
 
       throw new Error(`Error creating product: ${error.message}`);
@@ -120,35 +119,13 @@ export class ProductsService {
     } catch (error) {
       throw new Error(`Error getting products: ${error.message}`);
     }
-
-    if (isNaN(params.id) && params.id !== undefined) {
-      throw Error('Id is not a number');
-    }
-    if (params.descricao && params.descricao.length > 60) {
-      throw Error('Descrição is larger then expected');
-    }
-    if (isNaN(params.custo) && params.custo !== undefined) {
-      throw Error('Custo is not a number');
-    }
-
-    try {
-      if (params.descricao) {
-        return this.productRepository.find({
-          where: { descricao: ILike(`%${params.descricao}%`) },
-        });
-      }
-      return this.productRepository.find({ where: params });
-    } catch (error) {
-      throw new Error(`Error getting products: ${error.message}`);
-    }
   }
 
   async findById(id: number) {
-    if (isNaN(id) && id !== undefined) {
-      throw Error('Id is not a number');
-    }
-
     try {
+      if (isNaN(id) && id !== undefined) {
+        throw Error('Id is not a number');
+      }
       const [product] = await this.productRepository.find({ where: { id } });
       return product;
     } catch (error) {
@@ -216,9 +193,6 @@ export class ProductsService {
       await queryRunner.commitTransaction();
     } catch (error) {
       await queryRunner.rollbackTransaction();
-      if (error.code === '23505') {
-        throw new Error(`Duplicated entry found`);
-      }
 
       if (productToUpdate) {
         await this.productRepository.update(productToUpdate.id, {

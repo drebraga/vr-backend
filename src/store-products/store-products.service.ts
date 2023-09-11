@@ -4,7 +4,6 @@ import { UpdateStoreProductDto } from './dto/update-store-product.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { produtoloja } from '../entity/produtoloja.entity';
 import { Repository } from 'typeorm';
-import { ProductsService } from '../products/products.service';
 import { loja } from '../entity/loja.entity';
 import { Produto } from '../entity/produto.entity';
 
@@ -48,7 +47,7 @@ export class StoreProductsService {
     }
   }
 
-  async findAll(id: number) {
+  async find(id: number) {
     try {
       const [produto] = await this.ProductRepository.find({ where: { id } });
       const lojas = await this.storeProductRepository.find({
@@ -57,7 +56,13 @@ export class StoreProductsService {
         relations: ['loja'],
         select: ['precoVenda'],
       });
-      return { ...produto, lojas };
+      return {
+        id: produto.id,
+        descricao: produto.descricao,
+        custo: produto.custo,
+        imagem: produto.imagem ? produto.imagem.toString() : null,
+        lojas,
+      };
     } catch (error) {
       throw new Error(`Error finding product-store: ${error.message}`);
     }

@@ -21,8 +21,8 @@ export class StoreProductsController {
   }
 
   @Get(':id')
-  async findAll(@Param('id') id: string) {
-    return await this.storeProductsService.findAll(+id);
+  async find(@Param('id') id: string) {
+    return await this.storeProductsService.find(+id);
   }
 
   @Patch(':id')
