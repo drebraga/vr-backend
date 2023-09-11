@@ -37,10 +37,13 @@ Primeiro você precisa criar o banco de dados que vai receber a migration!
 
 Por padrão o nome dele é 'vr', mas você pode alterar no arquivo data-source.ts na pasta /src basta alterar a database no AppDataSource.
 
-Agora basta rodar o seguinte comando:
+Agora basta rodar os seguintes comandos:
 
 ```bash
+# Criando
 $ npm run typeorm migration:run -- -d ./src/data-source.ts
+# Sincronizando
+$ npm run typeorm schema:sync -- -d ./src/data-source.ts
 
 ```
 E sua base de dados estara pronta para receber dados.
